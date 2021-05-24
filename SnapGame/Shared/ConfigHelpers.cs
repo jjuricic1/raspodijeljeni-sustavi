@@ -1,9 +1,4 @@
-﻿using Akka.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Akka.Configuration;
 
 namespace Shared
 {
@@ -11,7 +6,7 @@ namespace Shared
     {
         public static Config ToActorSystemConfig(AkkaConfig config)
         {
-            var fullConfig = new { akka = config };
+            var fullConfig = new {akka = config};
             return ConfigurationFactory.FromObject(fullConfig);
         }
     }

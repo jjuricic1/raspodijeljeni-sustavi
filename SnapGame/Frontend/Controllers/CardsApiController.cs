@@ -15,33 +15,37 @@ namespace Frontend.Controllers
     public class CardsApiController : Controller
     {
         [HttpGet]
-        public async Task<ActionResult<List<Card>>> Get()
+        public async Task<ActionResult<JArray>> Get()
         {
             var props = Props.Create(() => new ConnectionActor(AkkaService.CClientSettings));
             var actor = AkkaService.ActorSys.ActorOf(props);
 
-            var result = await actor.Ask<List<Card>>(new GetAll());
+            var result = await actor.Ask<JArray>(new GetAll());
 
-            return Ok(result);
+            return result;
         }
 
+
         [HttpGet("{id}")]
-        public async Task<ActionResult<Card>> Get(int id)
+        public async Task<ActionResult<JObject>> Get(int id)
         {
+            /*        var props = Props.Create(() => new ConnectionActor(AkkaService.CClientSettings));
+                    var actor = AkkaService.ActorSys.ActorOf(props);
+
+                    var result = await actor.Ask<Card>(new Get(id));*/
+
             var props = Props.Create(() => new ConnectionActor(AkkaService.CClientSettings));
             var actor = AkkaService.ActorSys.ActorOf(props);
 
-            var result = await actor.Ask<Card>(new Get(id));
+            var result = await actor.Ask<JObject>(new Get(id));
 
-            return Ok(result);
-
-            // return _students.Find(x => x.Id == id);
+            return result;
         }
 
         [HttpPost("save")]
         public ActionResult Save([FromBody] JObject json)
         {
-            var student = CardDto.FromJson(json);
+            //var card = CardDto.FromJson(json);
             return Ok();
         }
     }

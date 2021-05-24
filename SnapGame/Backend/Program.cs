@@ -1,21 +1,22 @@
 ﻿using Akka.Actor;
 using System;
 using Akka.Configuration;
-using Backend.DB;
 using System.IO;
 using System.Threading.Tasks;
-using Backend.AkkaExtensions;
 using System.Collections.Generic;
 using Shared;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using AkkaConfigProvider;
+using Akka.Cluster.Tools.Client;
 
 namespace Backend
 {
     class Program
     {
-        static void FillDB(ActorSelection actor)
+        #region ne radi
+        /*static void FillDB(ActorSelection actor)
         {
             var cards = new List<Card>();
             #region Clubs
@@ -86,11 +87,10 @@ namespace Backend
                 actor.Ask<SaveSuccess>(
                     new SaveCard(c)).ContinueWith(c => Console.WriteLine(c.Id)));
         }
-        static void SetupDb(IServiceCollection services)
+        static void SetUpDB(IServiceCollection services)
         {
             services.AddDbContext<CardContext>(opt => opt.UseInMemoryDatabase("Cards"));
         }
-
         private static Config GetAkkaConfig(IConfiguration configuration)
         {
             var port = configuration.GetValue<int?>("port") ?? 0;
@@ -102,9 +102,14 @@ namespace Backend
             return ConfigurationFactory.ParseString($"akka.remote.dot-netty.tcp.port={port}")
                 .WithFallback(akkaConfig);
         }
+        */
+        #endregion
+
+
         static void Main(string[] args)
         {
-            IServiceCollection services = new ServiceCollection();
+            #region ne radi
+            /*IServiceCollection services = new ServiceCollection();
 
             var currDir = Directory.GetCurrentDirectory();
             var lastIndex = currDir.LastIndexOf("bin", StringComparison.InvariantCultureIgnoreCase);
@@ -120,13 +125,13 @@ namespace Backend
                 .AddJsonFile("appsettings.json")
                 .Build();
 
-            SetupDb(services);
+            SetUpDB(services);
 
             var akkaConfig = GetAkkaConfig(configuration);
 
             Console.WriteLine(akkaConfig.GetInt("akka.remote.dot-netty.tcp.port"));
 
-            using (var system = ActorSystem.Create("cluster", akkaConfig))
+            using (var system = ActorSystem.Create("Cluster", akkaConfig)) 
             {
                 var serviceProvider = services.BuildServiceProvider();
                 var scopeFactory = serviceProvider.GetService<IServiceScopeFactory>();
@@ -142,10 +147,31 @@ namespace Backend
 
                 Console.ReadLine();
                 CoordinatedShutdown.Get(system).Run(CoordinatedShutdown.ActorSystemTerminateReason.Instance);
-            }
+            }*/
+            #endregion
 
-        }  
-       
+            var configProvider = new ConfigProvider();
+            var config = configProvider.GetAkkaConfig<AkkaConfig>();
+            var port = args.Length > 0 ? int.Parse(args[0]) : 0;
+
+            var akkaConfig = ConfigurationFactory.ParseString($"akka.remote.dot-netty.tcp.port={port}")
+                .WithFallback(config);
+
+            using(var system = ActorSystem.Create("Cluster", akkaConfig))
+            {
+                var props = Props.Create(() => new ManagerActor());
+                var managerActor = system.ActorOf(props, "manager");
+
+                var receptionist = ClusterClientReceptionist.Get(system);
+                receptionist.RegisterService(managerActor);
+
+                Console.ReadLine();
+
+                CoordinatedShutdown.Get(system).Run(CoordinatedShutdown.ActorSystemTerminateReason.Instance).Wait();
+            }
+        
+        }
+
 
 
     }

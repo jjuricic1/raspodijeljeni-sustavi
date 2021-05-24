@@ -25,8 +25,9 @@ namespace Frontend
         {
             services.AddMvc().AddNewtonsoftJson();
             services.AddControllersWithViews();
+            services.AddRazorPages();
 
-            services.AddSingleton(provider => new AkkaService(Configuration));
+            services.AddSingleton(provider => new AkkaService(Configuration)); //kreira se samo jedna instanca ovog objekta
             services.AddHostedService(provider => provider.GetService<AkkaService>());
         }
 
@@ -55,6 +56,7 @@ namespace Frontend
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapRazorPages();
             });
         }
     }

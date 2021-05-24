@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,9 +19,18 @@ namespace Frontend.Actors
             var props = ClusterClient.Props(clusterClientSettings);
             _clusterClient = Context.ActorOf(props);
 
-            Receive<GetAll>(all => GetAll());
-            Receive<Get>(one => GetOne(one));
-            Receive<JObject>(json => HandleJson(json));
+            Receive<GetAll>(all => HandleGetAll(all));
+            Receive<Get>(one => HandleGetOne(one));
+            Receive<GetAllResult>(res =>
+            {
+                Sender.Tell(res.JArray);
+                Self.Tell(PoisonPill.Instance);
+            });
+            Receive<GetResult>(res =>
+            {
+                Sender.Tell(res.Json);
+                Self.Tell(PoisonPill.Instance);
+            });
         }
 
         private void HandleJson(JObject json)
@@ -29,27 +38,14 @@ namespace Frontend.Actors
             Sender.Tell(json);
             Self.Tell(PoisonPill.Instance);
         }
-        private void GetOne(Get one)
+        private void HandleGetOne(Get msg)
         {
-            _clusterClient.Ask<JObject>(one)
-                .PipeTo(Self, Sender);
-            // var list = new List<Student>();
-            // list.Add(new Student(
-            //     1, "ante", "mate", "1234", "email@email.email", -1, true
-            // ));
-            //
-            // var s = list.Find(student => student.Id == one.Id);
-            // Sender.Tell(s);
-            // Self.Tell(PoisonPill.Instance);
+            _clusterClient.Ask<GetResult>(new ClusterClient.Send("/user/manager", msg)).PipeTo(Self, Sender);
         }
 
-        private void GetAll()
+        private void HandleGetAll(GetAll msg)
         {
-            var list = new List<Card>();
-            list.Add(new Card( 1, Rank.Ace, Color.Hearts, "Ace of ♥"));
-
-            Sender.Tell(list);
-            Self.Tell(PoisonPill.Instance);
+            _clusterClient.Ask<GetAllResult>(new ClusterClient.Send("/user/manager", msg)).PipeTo(Self, Sender);
         }
     }
 }

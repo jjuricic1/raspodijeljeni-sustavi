@@ -1,5 +1,4 @@
-﻿using System;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 
 namespace Shared
 {
@@ -17,7 +16,7 @@ namespace Shared
         }
     }
 
-    public class GetResult
+   public class GetResult
     {
         public JObject Json { get; }
 
@@ -39,21 +38,10 @@ namespace Shared
 
     public class Save
     {
-        public JObject Json { get; }
-
+        public JObject Json { get;  }
         public Save(JObject json)
         {
             Json = json;
-        }
-    }
-
-    public class SaveSuccess
-    {
-        public int Id { get; }
-
-        public SaveSuccess(int id)
-        {
-            Id = id;
         }
     }
 }
